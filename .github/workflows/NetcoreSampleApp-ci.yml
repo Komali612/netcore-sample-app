@@ -34,22 +34,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Resolve .NET solution
+      - name: Restore & build
         run: |
-          SOLUTION=$(find . -name '*.sln' -print -quit)
-          if [ -z "$SOLUTION" ]; then
-            dotnet new sln -n CI
-            for p in $(find . -name '*.csproj'); do dotnet sln CI.sln add "$p"; done
-            SOLUTION=CI.sln
+          SLN=$(find . -name '*.sln' -print -quit)
+          if [ -n "$SLN" ]; then
+            dotnet build "$SLN" --configuration Release
+          else
+            for p in $(find . -name '*.csproj'); do
+              echo "Building $p"
+              dotnet build "$p" --configuration Release
+            done
           fi
-          echo "SOLUTION=$SOLUTION" >> "$GITHUB_ENV"
-          echo "Using solution: $SOLUTION"
-
-      - name: Restore dependencies
-        run: dotnet restore "$SOLUTION"
-
-      - name: Build
-        run: dotnet build "$SOLUTION" --configuration Release --no-restore
 
   test:
     needs: build
@@ -63,18 +58,14 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Resolve .NET solution
-        run: |
-          SOLUTION=$(find . -name '*.sln' -print -quit)
-          if [ -z "$SOLUTION" ]; then
-            dotnet new sln -n CI
-            for p in $(find . -name '*.csproj'); do dotnet sln CI.sln add "$p"; done
-            SOLUTION=CI.sln
-          fi
-          echo "SOLUTION=$SOLUTION" >> "$GITHUB_ENV"
-
       - name: Run Unit Tests
-        run: dotnet test "$SOLUTION" --configuration Release --verbosity normal
+        run: |
+          TESTS=$(find . -name '*.csproj' | grep -i test || true)
+          if [ -z "$TESTS" ]; then echo "No test projects found"; exit 0; fi
+          for p in $TESTS; do
+            echo "Testing $p"
+            dotnet test "$p" --configuration Release
+          done
 
   sonarqube:
     needs: test
