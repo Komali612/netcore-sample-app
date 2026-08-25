@@ -34,11 +34,22 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Resolve .NET solution
+        run: |
+          SOLUTION=$(find . -name '*.sln' -print -quit)
+          if [ -z "$SOLUTION" ]; then
+            dotnet new sln -n CI
+            for p in $(find . -name '*.csproj'); do dotnet sln CI.sln add "$p"; done
+            SOLUTION=CI.sln
+          fi
+          echo "SOLUTION=$SOLUTION" >> "$GITHUB_ENV"
+          echo "Using solution: $SOLUTION"
+
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore "$SOLUTION"
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build "$SOLUTION" --configuration Release --no-restore
 
   test:
     needs: build
@@ -52,11 +63,18 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Resolve .NET solution
+        run: |
+          SOLUTION=$(find . -name '*.sln' -print -quit)
+          if [ -z "$SOLUTION" ]; then
+            dotnet new sln -n CI
+            for p in $(find . -name '*.csproj'); do dotnet sln CI.sln add "$p"; done
+            SOLUTION=CI.sln
+          fi
+          echo "SOLUTION=$SOLUTION" >> "$GITHUB_ENV"
 
       - name: Run Unit Tests
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: dotnet test "$SOLUTION" --configuration Release --verbosity normal
 
   sonarqube:
     needs: test
