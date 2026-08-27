@@ -76,7 +76,7 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
       - name: 'Sonar scan begin'
         run: |
-          dotnet-sonarscanner begin /k:"__SONAR_PROJECT_KEY__" /o:"__SONAR_ORG__" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="$SONAR_TOKEN" /d:sonar.qualitygate.wait=false /d:sonar.exclusions="**/.github/**,**/Program.cs" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          dotnet-sonarscanner begin /k:"Komali612_netcore-sample-app" /o:"Komali612" /d:sonar.host.url="${SONAR_HOST_URL:-https://sonarcloud.io}" /d:sonar.token="$SONAR_TOKEN" /d:sonar.qualitygate.wait=false /d:sonar.exclusions="**/.github/**,**/Program.cs" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
       - name: 'Sonar build'
         run: |
           dotnet build "src/SampleApi/SampleApi.csproj" --configuration Release
@@ -98,12 +98,12 @@ jobs:
       - name: Run SCA (Sonatype)
         run: echo "SCA analysis via Sonatype integration (placeholder)"
 
-  # DAST stage disabled in configuration
-    # needs: build
-    # runs-on: ubuntu-latest
-    # steps:
-      # - name: Run DAST (Fortify WebInspect)
-        # run: echo 'DAST analysis via Fortify WebInspect (placeholder)'
+  dast:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run DAST (Fortify WebInspect)
+        run: echo 'DAST analysis via Fortify WebInspect (placeholder)'
 
   container:
     needs: security
