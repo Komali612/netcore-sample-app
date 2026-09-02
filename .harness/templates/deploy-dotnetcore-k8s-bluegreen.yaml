@@ -1,0 +1,78 @@
+template:
+  name: Deploy .NET Core — Kubernetes Blue/Green (AKS)
+  identifier: deploy_dotnetcore_k8s_bluegreen
+  versionLabel: '1.0'
+  type: Stage
+  orgIdentifier: default
+  projectIdentifier: default_project
+  tags: {}
+  spec:
+    type: Deployment
+    spec:
+      deploymentType: Kubernetes
+      service:
+        serviceRef: <+input>
+      environment:
+        environmentRef: <+input>
+        deployToAll: false
+        infrastructureDefinitions: <+input>
+      execution:
+        steps:
+        - step:
+            name: Stage Deployment
+            identifier: stageDeployment
+            type: K8sBlueGreenDeploy
+            timeout: 10m
+            spec:
+              skipDryRun: false
+              pruningEnabled: false
+        - step:
+            name: Health check (stage service)
+            identifier: healthCheckStage
+            type: Http
+            timeout: 5m
+            spec:
+              url: http://netcore_sample_app-stage.<+infra.namespace>.svc.cluster.local:8080/health
+              method: GET
+              headers: []
+              assertion: <+httpResponseCode> == 200
+        - step:
+            name: Approve before traffic swap
+            identifier: approvalBeforeSwap
+            type: HarnessApproval
+            timeout: 1d
+            spec:
+              approvalMessage: New version is deployed to the stage service and healthy. Approve to swap production traffic
+                onto it.
+              includePipelineExecutionHistory: true
+              isAutoRejectEnabled: false
+              approvers:
+                userGroups:
+                - <+input>
+                minimumCount: 1
+                disallowPipelineExecutor: false
+              approverInputs: []
+            when:
+              stageStatus: Success
+              condition: <+env.type> == "Production"
+        - step:
+            name: Swap Primary with Stage
+            identifier: bgSwapServices
+            type: K8sBGSwapServices
+            timeout: 10m
+            spec:
+              skipDryRun: false
+        rollbackSteps:
+        - step:
+            name: Swap back (rollback)
+            identifier: rollbackBgSwap
+            type: K8sBGSwapServices
+            timeout: 10m
+            spec:
+              skipDryRun: false
+    failureStrategies:
+    - onFailure:
+        errors:
+        - AllErrors
+        action:
+          type: StageRollback
