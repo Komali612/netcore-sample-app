@@ -1,0 +1,29 @@
+environment:
+  name: prod
+  identifier: netcore_sample_app_prod
+  orgIdentifier: default
+  projectIdentifier: default_project
+  type: Production
+  tags: {}
+  variables:
+  - name: namespace
+    type: String
+    value: netcore_sample_app-prod
+    description: Target Kubernetes namespace for this environment
+---
+infrastructureDefinition:
+  name: prod AKS
+  identifier: netcore_sample_app_prod_aks
+  orgIdentifier: default
+  projectIdentifier: default_project
+  environmentRef: netcore_sample_app_prod
+  deploymentType: Kubernetes
+  type: KubernetesAzure
+  spec:
+    connectorRef: <+input>
+    subscriptionId: <+input>
+    resourceGroup: <+input>
+    cluster: <+input>
+    namespace: <+env.variables.namespace>
+    releaseName: release-<+INFRA_KEY_SHORT_ID>
+  allowSimultaneousDeployments: false
