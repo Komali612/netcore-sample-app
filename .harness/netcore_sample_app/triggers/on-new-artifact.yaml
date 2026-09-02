@@ -1,0 +1,24 @@
+trigger:
+  name: netcore_sample_app on new image
+  identifier: netcore_sample_app_on_new_artifact
+  enabled: true
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipelineIdentifier: netcore_sample_app_cd
+  source:
+    type: Artifact
+    spec:
+      type: DockerRegistry
+      spec:
+        connectorRef: <+input>
+        imagePath: nexus.example.com/netcore-sample-app
+        tag: <+trigger.artifact.build>
+        eventConditions: []
+  inputYaml: "pipeline:\n  identifier: netcore_sample_app_cd\n  stages:\n  - stage:\n      identifier: deploy\n      template:\n\
+    \        templateInputs:\n          type: Deployment\n          spec:\n            service:\n              serviceInputs:\n\
+    \                serviceDefinition:\n                  type: Kubernetes\n                  spec:\n                   \
+    \ artifacts:\n                      primary:\n                        primaryArtifactRef: primary_image\n            \
+    \            sources:\n                        - identifier: primary_image\n                          type: DockerRegistry\n\
+    \                          spec:\n                            tag: <+trigger.artifact.build>\n            environment:\n\
+    \              environmentRef: netcore_sample_app_dev\n              infrastructureDefinitions:\n              - identifier:\
+    \ netcore_sample_app_dev_aks\n"
