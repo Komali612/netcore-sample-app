@@ -1,0 +1,27 @@
+inputSet:
+  name: netcore-sample-app — prod
+  identifier: netcore_sample_app_prod_inputset
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipeline:
+    identifier: netcore_sample_app_cd
+    stages:
+    - stage:
+        identifier: deploy
+        template:
+          templateInputs:
+            type: Deployment
+            spec:
+              environment:
+                environmentRef: netcore_sample_app_prod
+                infrastructureDefinitions:
+                - identifier: netcore_sample_app_prod_aks
+              execution:
+                steps:
+                - step:
+                    identifier: approvalBeforeSwap
+                    type: HarnessApproval
+                    spec:
+                      approvers:
+                        userGroups:
+                        - account._organization_all_users
