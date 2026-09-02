@@ -1,0 +1,37 @@
+service:
+  name: netcore-sample-app
+  identifier: netcore_sample_app
+  orgIdentifier: default
+  projectIdentifier: default_project
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      artifacts:
+        primary:
+          primaryArtifactRef: primary_image
+          sources:
+          - identifier: primary_image
+            type: DockerRegistry
+            spec:
+              connectorRef: <+input>
+              imagePath: nexus.example.com/netcore-sample-app
+              tag: <+input>
+      manifests:
+      - manifest:
+          identifier: netcore_sample_app_manifest
+          type: K8sManifest
+          spec:
+            store:
+              type: Github
+              spec:
+                connectorRef: <+input>
+                gitFetchType: Branch
+                paths:
+                - .harness/netcore_sample_app/manifests/deployment.yaml
+                - .harness/netcore_sample_app/manifests/service.yaml
+                repoName: <+input>
+                branch: main
+            valuesPaths:
+            - .harness/netcore_sample_app/manifests/values.yaml
+            skipResourceVersioning: false
+      variables: []
