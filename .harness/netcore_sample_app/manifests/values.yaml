@@ -1,0 +1,4 @@
+name: netcore_sample_app
+replicas: 2
+port: 8080
+image: <+artifacts.primary.image>

@@ -1,0 +1,27 @@
+inputSet:
+  name: netcore-sample-app — staging
+  identifier: netcore_sample_app_staging_inputset
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipeline:
+    identifier: netcore_sample_app_cd
+    stages:
+    - stage:
+        identifier: deploy
+        template:
+          templateInputs:
+            type: Deployment
+            spec:
+              environment:
+                environmentRef: netcore_sample_app_staging
+                infrastructureDefinitions:
+                - identifier: netcore_sample_app_staging_aks
+              execution:
+                steps:
+                - step:
+                    identifier: approvalBeforeSwap
+                    type: HarnessApproval
+                    spec:
+                      approvers:
+                        userGroups:
+                        - account._organization_all_users

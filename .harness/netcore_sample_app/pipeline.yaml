@@ -1,0 +1,30 @@
+pipeline:
+  name: netcore-sample-app CD
+  identifier: netcore_sample_app_cd
+  orgIdentifier: default
+  projectIdentifier: default_project
+  tags: {}
+  stages:
+  - stage:
+      name: Deploy
+      identifier: deploy
+      template:
+        templateRef: deploy_dotnetcore_k8s_bluegreen
+        versionLabel: '1.0'
+        templateInputs:
+          type: Deployment
+          spec:
+            service:
+              serviceRef: netcore_sample_app
+            environment:
+              environmentRef: <+input>
+              infrastructureDefinitions: <+input>
+            execution:
+              steps:
+              - step:
+                  identifier: approvalBeforeSwap
+                  type: HarnessApproval
+                  spec:
+                    approvers:
+                      userGroups:
+                      - <+input>

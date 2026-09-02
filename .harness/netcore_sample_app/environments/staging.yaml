@@ -1,0 +1,29 @@
+environment:
+  name: staging
+  identifier: netcore_sample_app_staging
+  orgIdentifier: default
+  projectIdentifier: default_project
+  type: PreProduction
+  tags: {}
+  variables:
+  - name: namespace
+    type: String
+    value: netcore_sample_app-staging
+    description: Target Kubernetes namespace for this environment
+---
+infrastructureDefinition:
+  name: staging AKS
+  identifier: netcore_sample_app_staging_aks
+  orgIdentifier: default
+  projectIdentifier: default_project
+  environmentRef: netcore_sample_app_staging
+  deploymentType: Kubernetes
+  type: KubernetesAzure
+  spec:
+    connectorRef: <+input>
+    subscriptionId: <+input>
+    resourceGroup: <+input>
+    cluster: <+input>
+    namespace: <+env.variables.namespace>
+    releaseName: release-<+INFRA_KEY_SHORT_ID>
+  allowSimultaneousDeployments: false
